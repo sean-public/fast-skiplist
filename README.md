@@ -29,6 +29,15 @@ list := skiplist.New()
 list.Set(uint64(123), "one two three!")
 ```
 
+Of course there are tests:
+
+```$ go test -cover
+$ go test -cover
+PASS
+coverage: 93.1% of statements
+ok      github.com/sean-public/fast-skiplist    0.008s
+```
+
 
 
 #### About fast-skiplist

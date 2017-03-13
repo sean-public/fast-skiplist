@@ -61,7 +61,7 @@ func (list *SkipList) Set(key uint64, value interface{}) *Element {
 	defer list.mutex.Unlock()
 
 	if element = prevs[0].next[0]; element != nil && element.key <= key {
-		element.Value = value
+		element.value = value
 		return element
 	}
 
@@ -70,7 +70,7 @@ func (list *SkipList) Set(key uint64, value interface{}) *Element {
 			next: make([]*Element, list.randLevel()),
 		},
 		key:   key,
-		Value: value,
+		value: value,
 	}
 
 	for i := range element.next {

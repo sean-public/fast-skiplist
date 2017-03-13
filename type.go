@@ -11,7 +11,7 @@ type elementNode struct {
 
 type Element struct {
 	elementNode
-	Value interface{}
+	value interface{}
 	key   uint64
 }
 
