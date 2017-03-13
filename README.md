@@ -1,0 +1,78 @@
+## fast-skiplist
+
+
+
+#### Purpose
+
+As the basic building block of an in-memory data structure store, I needed an implementation of skip lists in Go. It needed to be easy to use and thread-safe while maintaining the properties of a classic skip list: maintain an ordered set in *O(n)* space with *O(log n)* average performance on all operations with *O(n)* in the worst cases.
+
+There are several skip list implementations in Go. However, they all are implemented in slightly different ways with sparse optimizations and occasional shortcomings. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for a comparison of Go skip list implementations (including benchmarks).
+
+The purpose of this repo is to not only offer a new, fast implementation with an easy-to-use interface that will suit nearly any purpose.
+
+
+
+#### Quickstart
+
+To start using the library right away, just do:
+
+```sh
+go get github.com/sean-public/fast-skiplist
+```
+
+And then start using it:
+
+```go
+import github.com/sean-public/fast-skiplist
+
+list := skiplist.New()
+list.Set(uint64(123), "one two three!")
+```
+
+
+
+#### About fast-skiplist
+
+> "Perfection is achieved not when there is nothing more to add, but rather when there is nothing more to take away"    *— Antoine de Saint-Exupery*
+
+If fast-skiplist is faster than other packages with the same features, it's because it does *less* wherever possible. It locks less, it blocks less, and it makes fewer syscalls.
+
+When inserting, it calculates "height" directly instead of consecutive "coin tosses" to add levels. Additionally, it uses a local PRNG source that isn't blocked globally for improved concurrent insert performance.
+
+The probability of adding new nodes to each level of the structure (it's *height*) is determined by successively "rolling the dice" at each level until it doesn't meet a fixed value *P*. The default *P* values for skip lists in the wild range from 0.25 to 0.5. In this implementation, the default is *1/e*, which is optimal for a general-purpose skip list. To find the derivation of this number, see [Analysis of an optimized search algorithm for skip lists](http://www.sciencedirect.com/science/article/pii/030439759400296U) Kirschenhofer et al (1995).
+
+Almost all other implementations are using common functions in `math/rand`, which will block because querying the PRNG to determine the height of new nodes [waits then acquires a lock via the system-wide random number generator](http://blog.sgmansfield.com/2016/01/the-hidden-dangers-of-default-rand/). We get around this by assigning a new rand source to each skip list instantiated, so each skip list can only ever block itself. This significantly speeds up insert times when you are managing multiple lists with high concurrency.
+
+Additionally, this implementation always requests just one number from the PRNG. A pre-computed probability table is used to look up what the *height* of the new node will be. This is faster and offers a fixed calculation time compared to successive "dice rolls" for each level. The table is computed for each level *L* using the default *P* value of *1/e*: `math.Pow(1.0/math.E, L-1)`. It is consulted during inserts by querying for a random number in range [0.0,1.0) and finding the highest level in the table where the random number is less than or equal to the computed number.
+
+For example, let's say `math.Float64()` returned `r=0.029` and the table was pre-computed to contain (with a maximum height of 6):
+
+| height | probability |
+| ------ | ----------- |
+| 1      | 1.000000000 |
+| 2      | 0.367879441 |
+| 3      | 0.135335283 |
+| 4      | 0.049787068 |
+| 5      | 0.018315639 |
+| 6      | 0.006737947 |
+
+So the height for the new node would be 5 because *p5 > r ≥ p6*, or 0.018315639 > 0.029 ≥ 0.006737947.
+
+I believe this fast new node height calculation to be novel and faster than any others with user-defined *P* values. [Ticki, for example, proposes an O(1) calculation](http://ticki.github.io/blog/skip-lists-done-right/) but it is fixed to *P=0.5* and I haven't encountered any other optimizations of this calculation. In local benchmarks, this optimization saves 10-25ns per insert.
+
+Fine-grained locking on insert and delete combined with optimistic search offer faster concurrent operations. Most other thread-safe implementations in Go use very granular locking around the entire function call, preventing any operations (sometimes including other searches) for the duration. I have taken an optimistic locking approach similar to Java's `ConcurrentSkipListMap`, which uses very narrowly locked atomic compare-and-swap (CAS) operations. For example, searches that don't find a result never lock at all. An insert or delete only locks after the node is found and then verify that the previous and next nodes haven't been changed before acquiring the lock.
+
+Why not a lock-free implementation? The overhead created is more than the time spent in contention of a locking version under normal loads. Most research on lock-free structures assume manual alloc/free as well and have separate compaction processes running that are unnecessary in Go (particularly with improved GC as of 1.8). The same is true for the newest variation, [the rotating skip list](http://poseidon.it.usyd.edu.au/~gramoli/web/doc/pubs/rotating-skiplist-preprint-2016.pdf), which claims to be the fastest to date for C/C++ and Java because the compared implementations have maintenance threads with increased overhead for memory management.
+
+
+
+#### Benchmarks
+
+Speed is a feature as well. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations.
+
+
+
+#### Todo
+
+- Build more complex test cases (specifically to prove correctness during high concurrency).
+- Add more key types.
