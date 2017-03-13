@@ -51,16 +51,13 @@ func TestBasicIntCRUD(t *testing.T) {
 	list.Set(30, 3)
 	list.Set(20, 4)
 	list.Set(90, 5)
-	t.Log("inserted")
 	checkSanity(list, t)
 
 	list.Set(30, 9)
-	t.Log("inserted duplicates")
 	checkSanity(list, t)
 
 	list.Remove(0)
 	list.Remove(20)
-	t.Log("removed")
 	checkSanity(list, t)
 
 	v1 := list.Get(10)
@@ -71,19 +68,19 @@ func TestBasicIntCRUD(t *testing.T) {
 	v6 := list.Get(0)
 
 	if v1 == nil || v1.value.(int) != 1 || v1.key != 10 {
-		t.Fatal(`wrong "10" value`, v1)
+		t.Fatal(`wrong "10" value (expected "1")`, v1)
 	}
 
 	if v2 == nil || v2.value.(int) != 2 {
-		t.Fatal(`wrong "60" value`)
+		t.Fatal(`wrong "60" value (expected "2")`)
 	}
 
 	if v3 == nil || v3.value.(int) != 9 {
-		t.Fatal(`wrong "30" value`)
+		t.Fatal(`wrong "30" value (expected "9")`)
 	}
 
 	if v4 != nil {
-		t.Fatal(`wrong "20" value`)
+		t.Fatal(`found value for key "20", which should have been deleted`)
 	}
 
 	if v5 == nil || v5.value.(int) != 5 {
@@ -91,7 +88,7 @@ func TestBasicIntCRUD(t *testing.T) {
 	}
 
 	if v6 != nil {
-		t.Fatal(`found a key that should have been deleted`)
+		t.Fatal(`found value for key "0", which should have been deleted`)
 	}
 }
 
@@ -101,8 +98,8 @@ func TestChangeLevel(t *testing.T) {
 	// Override global default for this test, save old value to restore afterward
 	oldMaxLevel := DefaultMaxLevel
 	DefaultMaxLevel = 10
-
 	list := New()
+	DefaultMaxLevel = oldMaxLevel
 
 	if list.maxLevel != 10 {
 		t.Fatal("max level must equal default max value")
@@ -114,6 +111,7 @@ func TestChangeLevel(t *testing.T) {
 
 	checkSanity(list, t)
 
+	// Test setting the max level just for this list, not the global default
 	list.SetMaxLevel(20)
 	checkSanity(list, t)
 
@@ -133,6 +131,4 @@ func TestChangeLevel(t *testing.T) {
 			t.Fatal("wrong list element value")
 		}
 	}
-
-	DefaultMaxLevel = oldMaxLevel
 }
