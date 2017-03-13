@@ -8,7 +8,7 @@ As the basic building block of an in-memory data structure store, I needed an im
 
 There are several skip list implementations in Go. However, they all are implemented in slightly different ways with sparse optimizations and occasional shortcomings. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for a comparison of Go skip list implementations (including benchmarks).
 
-The purpose of this repo is to not only offer a new, fast implementation with an easy-to-use interface that will suit nearly any purpose.
+The purpose of this repo is to offer a new, fast implementation with an easy-to-use interface that will suit general data storage purposes (exactly like Redis ordered sets).
 
 
 
