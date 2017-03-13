@@ -68,7 +68,9 @@ Why not a lock-free implementation? The overhead created is more than the time s
 
 #### Benchmarks
 
-Speed is a feature as well. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations.
+Speed is a feature as well! Below is a set of results demonstrating the flat performance (time per operation) as the list grows to millions of elements. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations. 
+
+![benchmark results chart](http://i.imgur.com/VqUbsWr.png)
 
 
 
