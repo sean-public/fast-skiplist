@@ -2,7 +2,7 @@
 
 
 
-#### Purpose
+### Purpose
 
 As the basic building block of an in-memory data structure store, I needed an implementation of skip lists in Go. It needed to be easy to use and thread-safe while maintaining the properties of a classic skip list: maintain an ordered set in *O(n)* space with *O(log n)* average performance on all operations with *O(n)* in the worst cases.
 
@@ -12,7 +12,7 @@ The purpose of this repo is to offer a new, fast implementation with an easy-to-
 
 
 
-#### Quickstart
+### Quickstart
 
 To start using the library right away, just do:
 
@@ -40,7 +40,7 @@ ok      github.com/sean-public/fast-skiplist    0.008s
 
 
 
-#### About fast-skiplist
+### About fast-skiplist
 
 > "Perfection is achieved not when there is nothing more to add, but rather when there is nothing more to take away"    *— Antoine de Saint-Exupery*
 
@@ -75,7 +75,7 @@ Why not a lock-free implementation? The overhead created is more than the time s
 
 
 
-#### Benchmarks
+### Benchmarks
 
 Speed is a feature as well! Below is a set of results demonstrating the flat performance (time per operation) as the list grows to millions of elements. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations. 
 
@@ -83,7 +83,7 @@ Speed is a feature as well! Below is a set of results demonstrating the flat per
 
 
 
-#### Todo
+### Todo
 
 - Build more complex test cases (specifically to prove correctness during high concurrency).
 - Add more key types.
