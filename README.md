@@ -31,7 +31,7 @@ list.Set(uint64(123), "one two three!")
 
 Of course there are tests:
 
-```$ go test -cover
+```sh
 $ go test -cover
 PASS
 coverage: 93.1% of statements
