@@ -8,7 +8,7 @@ As the basic building block of an in-memory data structure store, I needed an im
 
 There are several skip list implementations in Go. However, they all are implemented in slightly different ways with sparse optimizations and occasional shortcomings. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for a comparison of Go skip list implementations (including benchmarks).
 
-The purpose of this repo is to offer a new, fast implementation with an easy-to-use interface that will suit general data storage purposes (exactly like Redis ordered sets).
+The purpose of this repo is to offer a new, fast implementation with an easy-to-use interface that will suit general data storage purposes. The end goal is to develop a dual-ported data structure with an interface compatible with Redis ordered sets.
 
 
 
@@ -46,7 +46,9 @@ ok      github.com/sean-public/fast-skiplist    0.006s
 
 > "Perfection is achieved not when there is nothing more to add, but rather when there is nothing more to take away"    *— Antoine de Saint-Exupery*
 
-If fast-skiplist is faster than other packages with the same features, it's because it does *less* wherever possible. It locks less, it blocks less, and it makes fewer syscalls.
+If fast-skiplist is faster than other packages with the same features, it's because it does *less* wherever possible. It locks less, it blocks less, and it traverses less data. Even with these tricks up its sleeve, it has fewer lines of code than most implementations.
+
+###### Calculating the Height of New Nodes
 
 When inserting, it calculates "height" directly instead of consecutive "coin tosses" to add levels. Additionally, it uses a local PRNG source that isn't blocked globally for improved concurrent insert performance.
 
@@ -71,15 +73,23 @@ So the height for the new node would be 5 because *p5 > r ≥ p6*, or 0.01831563
 
 I believe this fast new node height calculation to be novel and faster than any others with user-defined *P* values. [Ticki, for example, proposes an O(1) calculation](http://ticki.github.io/blog/skip-lists-done-right/) but it is fixed to *P=0.5* and I haven't encountered any other optimizations of this calculation. In local benchmarks, this optimization saves 10-25ns per insert.
 
+###### Better Cooperative Multitasking
+
 Fine-grained locking on insert and delete combined with optimistic search offer faster concurrent operations. Most other thread-safe implementations in Go use very granular locking around the entire function call, preventing any operations (sometimes including other searches) for the duration. I have taken an optimistic locking approach similar to Java's `ConcurrentSkipListMap`, which uses very narrowly locked atomic compare-and-swap (CAS) operations. For example, searches that don't find a result never lock at all. An insert or delete only locks after the node is found and then verify that the previous and next nodes haven't been changed before acquiring the lock.
 
 Why not a lock-free implementation? The overhead created is more than the time spent in contention of a locking version under normal loads. Most research on lock-free structures assume manual alloc/free as well and have separate compaction processes running that are unnecessary in Go (particularly with improved GC as of 1.8). The same is true for the newest variation, [the rotating skip list](http://poseidon.it.usyd.edu.au/~gramoli/web/doc/pubs/rotating-skiplist-preprint-2016.pdf), which claims to be the fastest to date for C/C++ and Java because the compared implementations have maintenance threads with increased overhead for memory management.
+
+###### Caching and Search Fingers
+
+As Pugh described in [A Skip List Cookbook](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.17.524), search "fingers" can be retained after each lookup operation. When starting the next operation, the finger will point to where the last one occurred and afford the opportunity to pick up the search there instead of starting at the head of the list. This offers *O(log m)* search times, where *m* is the number of elements between the last lookup and the current one (*m* is always less than *n*).
+
+This implementation of a search finger does not suffer the usual problem of "climbing" up in levels when resuming search because it stores pointers to previous nodes for each level independently.
 
 
 
 ### Benchmarks
 
-Speed is a feature as well! Below is a set of results demonstrating the flat performance (time per operation) as the list grows to millions of elements. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations. 
+Speed is a feature! Below is a set of results demonstrating the flat performance (time per operation) as the list grows to millions of elements. Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for complete benchmark results from this and other Go skip list implementations. 
 
 ![benchmark results chart](http://i.imgur.com/VqUbsWr.png)
 
@@ -89,3 +99,4 @@ Speed is a feature as well! Below is a set of results demonstrating the flat per
 
 - Build more complex test cases (specifically to prove correctness during high concurrency).
 - Benchmark memory usage.
+- Add "span" to each element to store the distance to the next node on every level. This gives each node a calculable index (ZRANK and associated commands in Redis).
