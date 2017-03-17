@@ -93,7 +93,7 @@ func TestBasicIntCRUD(t *testing.T) {
 }
 
 func TestChangeLevel(t *testing.T) {
-	var i uint64
+	var i float64
 
 	// Override global default for this test, save old value to restore afterward
 	oldMaxLevel := DefaultMaxLevel
@@ -103,6 +103,16 @@ func TestChangeLevel(t *testing.T) {
 
 	if list.maxLevel != 10 {
 		t.Fatal("max level must equal default max value")
+	}
+
+	if list.SetMaxLevel(0) {
+		t.Fatal("max level must be from 1 to 64 inclusive and 0 worked")
+	}
+	if list.SetMaxLevel(65) {
+		t.Fatal("max level must be from 1 to 64 inclusive and 65 worked")
+	}
+	if list.SetMaxLevel(list.maxLevel) {
+		t.Fatal("SetMaxLevel should have no effect if the new level is the same as the old")
 	}
 
 	for i = 0; i <= 200; i += 4 {
@@ -127,8 +137,21 @@ func TestChangeLevel(t *testing.T) {
 	}
 
 	for c := list.Front(); c != nil; c = c.Next() {
-		if c.key*10 != c.value.(uint64) {
+		if c.key*10 != c.value.(float64) {
 			t.Fatal("wrong list element value")
 		}
+	}
+}
+
+func TestChangeProbability(t *testing.T) {
+	list := New()
+
+	if list.probability != DefaultProbability {
+		t.Fatal("new lists should have P value = DefaultProbability")
+	}
+
+	list.SetProbability(0.5)
+	if list.probability != 0.5 {
+		t.Fatal("failed to set new list probability value: expected 0.5, got", list.probability)
 	}
 }
