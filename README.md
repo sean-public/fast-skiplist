@@ -86,4 +86,4 @@ Speed is a feature as well! Below is a set of results demonstrating the flat per
 ### Todo
 
 - Build more complex test cases (specifically to prove correctness during high concurrency).
-- Add more key types.
+- Benchmark memory usage.
