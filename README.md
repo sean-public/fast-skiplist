@@ -34,8 +34,8 @@ Of course there are tests:
 ```sh
 $ go test -cover
 PASS
-coverage: 93.1% of statements
-ok      github.com/sean-public/fast-skiplist    0.008s
+coverage: 100.0% of statements
+ok      github.com/sean-public/fast-skiplist    0.006s
 ```
 
 
