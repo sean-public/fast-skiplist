@@ -166,6 +166,7 @@ func (list *SkipList) randLevel() (level int) {
 	// Reference: https://golang.org/src/math/rand/rand.go#L150
 	r := float64(list.randSource.Int63()) / (1 << 63)
 
+	level = 1
 	for level < list.maxLevel && r < list.probTable[level] {
 		level++
 	}
