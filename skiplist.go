@@ -80,7 +80,7 @@ func (list *SkipList) Get(key float64) *Element {
 	return nil
 }
 
-// Remove deletes an element form the list.
+// Remove deletes an element from the list.
 // Returns removed element pointer if found, nil if not found.
 // Locking is optimistic and happens only after searching with a fast check on adjacent nodes after locking.
 func (list *SkipList) Remove(key float64) *Element {

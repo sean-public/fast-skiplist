@@ -20,13 +20,15 @@ To start using the library right away, just do:
 go get github.com/sean-public/fast-skiplist
 ```
 
-And then start using it:
+There are no external dependencies, so you can start using it right away:
 
 ```go
 import github.com/sean-public/fast-skiplist
 
 list := skiplist.New()
-list.Set(uint64(123), "one two three!")
+list.Set(123, "This string data is stored at key 123!")
+fmt.Println(list.Get(123).value)
+list.Remove(123)
 ```
 
 Of course there are tests:
