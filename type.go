@@ -15,6 +15,16 @@ type Element struct {
 	value interface{}
 }
 
+// Key allows retrieval of the key for a given Element
+func (e *Element) Key() float64 {
+	return e.key
+}
+
+// Value allows retrieval of the value for a given Element
+func (e *Element) Value() interface{} {
+	return e.value
+}
+
 type SkipList struct {
 	elementNode
 	maxLevel       int
