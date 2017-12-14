@@ -1,6 +1,7 @@
 package skiplist
 
 import (
+	"sync"
 	"testing"
 )
 
@@ -153,5 +154,30 @@ func TestChangeProbability(t *testing.T) {
 	list.SetProbability(0.5)
 	if list.probability != 0.5 {
 		t.Fatal("failed to set new list probability value: expected 0.5, got", list.probability)
+	}
+}
+
+func TestConcurrency(t *testing.T) {
+	list := New()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		for i := 0; i < 100000; i++ {
+			list.Set(float64(i), i)
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100000; i++ {
+			list.Get(float64(i))
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+	if list.length != 100000 {
+		t.Fail()
 	}
 }
