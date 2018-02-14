@@ -27,12 +27,11 @@ func (element *Element) Next() *Element {
 // Returns a pointer to the new element.
 // Locking is optimistic and happens only after searching.
 func (list *SkipList) Set(key float64, value interface{}) *Element {
-	var element *Element
-
-	prevs := list.getPrevElementNodes(key)
-
 	list.mutex.Lock()
 	defer list.mutex.Unlock()
+
+	var element *Element
+	prevs := list.getPrevElementNodes(key)
 
 	if element = prevs[0].next[0]; element != nil && element.key <= key {
 		element.value = value
@@ -59,6 +58,9 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 // Get finds an element by key. It returns element pointer if found, nil if not found.
 // Locking is optimistic and happens only after searching with a fast check for deletion after locking.
 func (list *SkipList) Get(key float64) *Element {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
+
 	var prev *elementNode = &list.elementNode
 	var next *Element
 
@@ -71,8 +73,6 @@ func (list *SkipList) Get(key float64) *Element {
 		}
 	}
 
-	list.mutex.Lock()
-	defer list.mutex.Unlock()
 	if next != nil && next.key <= key {
 		return next
 	}
@@ -84,11 +84,11 @@ func (list *SkipList) Get(key float64) *Element {
 // Returns removed element pointer if found, nil if not found.
 // Locking is optimistic and happens only after searching with a fast check on adjacent nodes after locking.
 func (list *SkipList) Remove(key float64) *Element {
+	list.mutex.Lock()
+	defer list.mutex.Unlock()
 	prevs := list.getPrevElementNodes(key)
 
 	// found the element, remove it
-	list.mutex.Lock()
-	defer list.mutex.Unlock()
 	if element := prevs[0].next[0]; element != nil && element.key <= key {
 		for k, v := range element.next {
 			prevs[k].next[k] = v
