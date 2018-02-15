@@ -4,14 +4,18 @@
 
 ### Purpose
 
-As the basic building block of an in-memory data structure store, I needed an implementation of skip lists in Go. It needed to be easy to use and thread-safe while maintaining the properties of a classic skip list: maintain an ordered set in *O(n)* space with *O(log n)* average performance on all operations with *O(n)* in the worst cases.
+As the basic building block of an in-memory data structure store, I needed an implementation of skip lists in Go. It needed to be easy to use and thread-safe while maintaining the properties of a classic skip list.
 
-There are several skip list implementations in Go. However, they all are implemented in slightly different ways with sparse optimizations and occasional shortcomings.
+There are several skip list implementations in Go. However, they all are implemented in slightly different ways with sparse optimizations and occasional shortcomings. **Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for a comparison of Go skip list implementations (including benchmarks).**
 
-**Please see the [skiplist-survey](https://github.com/sean-public/skiplist-survey) repo for a comparison of Go skip list implementations (including benchmarks).**
+The purpose of this repo is to offer a new, fast implementation with an easy-to-use interface that will suit general data storage purposes.
 
-The purpose of this repo is to offer a new, fast implementation with an easy-to-use interface that will suit general data storage purposes. The end goal is to develop a dual-ported data structure with an interface compatible with Redis ordered sets.
-
+| Operation          | Time Complexity |
+| ------------------ | -------- |
+| Insertion          | O(log N) |
+| Removal            | O(log N) |
+| Check if contains  | O(log N) |
+| Enumerate in order | O(N)     |
 
 
 ### Quickstart

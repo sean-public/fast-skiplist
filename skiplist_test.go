@@ -5,6 +5,18 @@ import (
 	"testing"
 )
 
+var benchList *SkipList
+var discard *Element
+
+func init() {
+	// Initialize a big SkipList for the Get() benchmark
+	benchList = New()
+
+	for i := 0; i < 10000000; i++ {
+		benchList.Set(float64(i), i)
+	}
+}
+
 func checkSanity(list *SkipList, t *testing.T) {
 	// each level must be correctly ordered
 	for k, v := range list.next {
@@ -179,5 +191,19 @@ func TestConcurrency(t *testing.T) {
 	wg.Wait()
 	if list.length != 100000 {
 		t.Fail()
+	}
+}
+
+func BenchmarkIncrSet(b *testing.B) {
+	list := New()
+
+	for i := 0; i < b.N; i++ {
+		list.Set(float64(i), i)
+	}
+}
+
+func BenchmarkIncrGet(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		discard = benchList.Get(float64(i))
 	}
 }
