@@ -6,20 +6,14 @@ import (
 	"time"
 )
 
-var (
-	DefaultMaxLevel    int     = 21
+const (
+	DefaultMaxLevel    int     = 18
 	DefaultProbability float64 = 1 / math.E
 )
 
 // Front returns the head node of the list.
 func (list *SkipList) Front() *Element {
 	return list.next[0]
-}
-
-// Next returns the following Element or nil if we're at the end of the list.
-// Only operates on the bottom level of the skip list (a fully linked list).
-func (element *Element) Next() *Element {
-	return element.next[0]
 }
 
 // Set inserts a value in the list with the specified key, ordered by the key.
@@ -51,7 +45,7 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 		prevs[i].next[i] = element
 	}
 
-	list.length++
+	list.Length++
 	return element
 }
 
@@ -94,7 +88,7 @@ func (list *SkipList) Remove(key float64) *Element {
 			prevs[k].next[k] = v
 		}
 
-		list.length--
+		list.Length--
 		return element
 	}
 
@@ -125,35 +119,6 @@ func (list *SkipList) getPrevElementNodes(key float64) []*elementNode {
 	return prevs
 }
 
-// SetMaxLevel changes the maximum level in the data structure.
-// It doesn't alter any existing data, only sets a limit on future insert heights.
-// newLevel must be between 1 and 64 inclusive.
-// Returns true if the level was changed.
-func (list *SkipList) SetMaxLevel(newLevel int) (ok bool) {
-	if 1 > newLevel || newLevel > 64 || newLevel == list.maxLevel {
-		return false
-	}
-
-	// Downsizing, just truncate the existing data
-	if list.maxLevel > newLevel {
-		list.next = list.next[:newLevel]
-		list.prevNodesCache = list.prevNodesCache[:newLevel]
-		list.probTable = probabilityTable(list.probability, newLevel)
-		list.maxLevel = newLevel
-		return true
-	}
-
-	// Upsizing, need to embiggen arrays
-	next := make([]*Element, newLevel)
-	copy(next, list.next)
-	list.next = next
-	list.prevNodesCache = make([]*elementNode, newLevel)
-	list.probTable = probabilityTable(list.probability, newLevel)
-	list.maxLevel = newLevel
-
-	return true
-}
-
 // SetProbability changes the current P value of the list.
 // It doesn't alter any existing data, only changes how future insert heights are calculated.
 func (list *SkipList) SetProbability(newProbability float64) {
@@ -174,26 +139,34 @@ func (list *SkipList) randLevel() (level int) {
 }
 
 // probabilityTable calculates in advance the probability of a new node having a given level.
-// probability is in [0, 1], maxLevel is (0, 64]
+// probability is in [0, 1], MaxLevel is (0, 64]
 // Returns a table of floating point probabilities that each level should be included during an insert.
-func probabilityTable(probability float64, maxLevel int) (table []float64) {
-	for i := 1; i <= maxLevel; i++ {
+func probabilityTable(probability float64, MaxLevel int) (table []float64) {
+	for i := 1; i <= MaxLevel; i++ {
 		prob := math.Pow(probability, float64(i-1))
 		table = append(table, prob)
 	}
 	return table
 }
 
-// New creates a new skip list with default parameters. Returns a pointer to the new list.
-func New() *SkipList {
+// NewWithMaxLevel creates a new skip list with MaxLevel set to the provided number.
+// Returns a pointer to the new list.
+func NewWithMaxLevel(maxLevel int) *SkipList {
+	if maxLevel < 1 || maxLevel > 64 {
+		panic("maxLevel for a SkipList must be a positive integer <= 64")
+	}
+
 	return &SkipList{
 		elementNode:    elementNode{next: make([]*Element, DefaultMaxLevel)},
 		prevNodesCache: make([]*elementNode, DefaultMaxLevel),
-		maxLevel:       DefaultMaxLevel,
-
-		// Every new list gets its own PRNG source so they don't block one another
-		randSource:  rand.New(rand.NewSource(time.Now().UnixNano())),
-		probability: DefaultProbability,
-		probTable:   probabilityTable(DefaultProbability, DefaultMaxLevel),
+		maxLevel:       maxLevel,
+		randSource:     rand.New(rand.NewSource(time.Now().UnixNano())),
+		probability:    DefaultProbability,
+		probTable:      probabilityTable(DefaultProbability, DefaultMaxLevel),
 	}
+}
+
+// New creates a new skip list with default parameters. Returns a pointer to the new list.
+func New() *SkipList {
+	return NewWithMaxLevel(DefaultMaxLevel)
 }

@@ -1,8 +1,10 @@
 package skiplist
 
 import (
+	"fmt"
 	"sync"
 	"testing"
+	"unsafe"
 )
 
 var benchList *SkipList
@@ -12,9 +14,14 @@ func init() {
 	// Initialize a big SkipList for the Get() benchmark
 	benchList = New()
 
-	for i := 0; i < 10000000; i++ {
-		benchList.Set(float64(i), i)
+	for i := 0; i <= 10000000; i++ {
+		benchList.Set(float64(i), [1]byte{})
 	}
+
+	// Display the sizes of our basic structs
+	var sl SkipList
+	var el Element
+	fmt.Printf("Structure sizes: SkipList is %v, Element is %v bytes\n", unsafe.Sizeof(sl), unsafe.Sizeof(el))
 }
 
 func checkSanity(list *SkipList, t *testing.T) {
@@ -47,8 +54,8 @@ func checkSanity(list *SkipList, t *testing.T) {
 		}
 
 		if k == 0 {
-			if cnt != list.length {
-				t.Fatalf("list len must match the level 0 nodes count. [cur:%v] [level0:%v]", cnt, list.length)
+			if cnt != list.Length {
+				t.Fatalf("list len must match the level 0 nodes count. [cur:%v] [level0:%v]", cnt, list.Length)
 			}
 		}
 	}
@@ -107,14 +114,9 @@ func TestBasicIntCRUD(t *testing.T) {
 
 func TestChangeLevel(t *testing.T) {
 	var i float64
-
-	// Override global default for this test, save old value to restore afterward
-	oldMaxLevel := DefaultMaxLevel
-	DefaultMaxLevel = 10
 	list := New()
-	DefaultMaxLevel = oldMaxLevel
 
-	if list.maxLevel != 10 {
+	if list.maxLevel != DefaultMaxLevel {
 		t.Fatal("max level must equal default max value")
 	}
 
@@ -145,8 +147,8 @@ func TestChangeLevel(t *testing.T) {
 	list.SetMaxLevel(4)
 	checkSanity(list, t)
 
-	if list.length != 102 {
-		t.Fatal("wrong list length", list.length)
+	if list.Length != 102 {
+		t.Fatal("wrong list length", list.Length)
 	}
 
 	for c := list.Front(); c != nil; c = c.Next() {
@@ -189,21 +191,53 @@ func TestConcurrency(t *testing.T) {
 	}()
 
 	wg.Wait()
-	if list.length != 100000 {
+	if list.Length != 100000 {
 		t.Fail()
 	}
 }
 
-func BenchmarkIncrSet(b *testing.B) {
+func BenchmarkIncSet(b *testing.B) {
+	b.ReportAllocs()
 	list := New()
 
 	for i := 0; i < b.N; i++ {
-		list.Set(float64(i), i)
+		list.Set(float64(i), [1]byte{})
 	}
+
+	b.SetBytes(int64(b.N))
 }
 
-func BenchmarkIncrGet(b *testing.B) {
+func BenchmarkIncGet(b *testing.B) {
+	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		discard = benchList.Get(float64(i))
+		res := benchList.Get(float64(i))
+		if res == nil {
+			b.Fatal("failed to Get an element that should exist")
+		}
 	}
+
+	b.SetBytes(int64(b.N))
+}
+
+func BenchmarkDecSet(b *testing.B) {
+	b.ReportAllocs()
+	list := New()
+
+	for i := b.N; i > 0; i-- {
+		list.Set(float64(i), [1]byte{})
+	}
+
+	b.SetBytes(int64(b.N))
+}
+
+func BenchmarkDecGet(b *testing.B) {
+	b.ReportAllocs()
+	for i := b.N; i > 0; i-- {
+		res := benchList.Get(float64(i))
+		if res == nil {
+			b.Fatal("failed to Get an element that should exist", i)
+		}
+	}
+
+	b.SetBytes(int64(b.N))
 }
