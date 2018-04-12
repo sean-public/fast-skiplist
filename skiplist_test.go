@@ -120,34 +120,18 @@ func TestChangeLevel(t *testing.T) {
 		t.Fatal("max level must equal default max value")
 	}
 
-	if list.SetMaxLevel(0) {
-		t.Fatal("max level must be from 1 to 64 inclusive and 0 worked")
-	}
-	if list.SetMaxLevel(65) {
-		t.Fatal("max level must be from 1 to 64 inclusive and 65 worked")
-	}
-	if list.SetMaxLevel(list.maxLevel) {
-		t.Fatal("SetMaxLevel should have no effect if the new level is the same as the old")
+	list = NewWithMaxLevel(4)
+	if list.maxLevel != 4 {
+		t.Fatal("wrong maxLevel (wanted 4)", list.maxLevel)
 	}
 
-	for i = 0; i <= 200; i += 4 {
+	for i = 1; i <= 201; i++ {
 		list.Set(i, i*10)
 	}
 
 	checkSanity(list, t)
 
-	// Test setting the max level just for this list, not the global default
-	list.SetMaxLevel(20)
-	checkSanity(list, t)
-
-	for i = 1; i <= 201; i += 4 {
-		list.Set(i, i*10)
-	}
-
-	list.SetMaxLevel(4)
-	checkSanity(list, t)
-
-	if list.Length != 102 {
+	if list.Length != 201 {
 		t.Fatal("wrong list length", list.Length)
 	}
 

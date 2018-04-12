@@ -34,16 +34,35 @@ import github.com/sean-public/fast-skiplist
 list := skiplist.New()
 list.Set(123, "This string data is stored at key 123!")
 fmt.Println(list.Get(123).value)
+fmt.Println(list.Length)	// prints 1
 list.Remove(123)
+fmt.Println(list.Length)	// prints 0
 ```
 
-Of course there are tests:
+Of course there are tests, including benchmarks and race condition detection with concurrency:
 
-```sh
+```
 $ go test -cover
 PASS
 coverage: 100.0% of statements
 ok      github.com/sean-public/fast-skiplist    0.006s
+
+$ go test -race
+Structure sizes: SkipList is 136, Element is 48 bytes
+PASS
+ok  	github.com/sean-public/fast-skiplist	41.530s
+
+$ go test -bench=.
+Structure sizes: SkipList is 136, Element is 48 bytes
+goos: darwin
+goarch: amd64
+pkg: github.com/sean-public/fast-skiplist
+BenchmarkIncSet-8   5000000    370 ns/op    13484040.32 MB/s    62 B/op    3 allocs/op
+BenchmarkIncGet-8   10000000   205 ns/op    48592107.58 MB/s    0 B/op     0 allocs/op
+BenchmarkDecSet-8   10000000   281 ns/op    35547886.82 MB/s    62 B/op    3 allocs/op
+BenchmarkDecGet-8   10000000   212 ns/op    47124462.78 MB/s    0 B/op     0 allocs/op
+PASS
+ok  	github.com/sean-public/fast-skiplist	21.709s
 ```
 
 
