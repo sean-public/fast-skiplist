@@ -100,9 +100,8 @@ I believe this fast new node height calculation to be novel and faster than any 
 
 ###### Better Cooperative Multitasking
 
-Fine-grained locking on insert and delete combined with optimistic search offer faster concurrent operations. Most other thread-safe implementations in Go use very granular locking around the entire function call, preventing any operations (sometimes including other searches) for the duration. I have taken an optimistic locking approach similar to Java's `ConcurrentSkipListMap`, which uses very narrowly locked atomic compare-and-swap (CAS) operations. For example, searches that don't find a result never lock at all. An insert or delete only locks after the node is found and then verify that the previous and next nodes haven't been changed before acquiring the lock.
-
 Why not a lock-free implementation? The overhead created is more than the time spent in contention of a locking version under normal loads. Most research on lock-free structures assume manual alloc/free as well and have separate compaction processes running that are unnecessary in Go (particularly with improved GC as of 1.8). The same is true for the newest variation, [the rotating skip list](http://poseidon.it.usyd.edu.au/~gramoli/web/doc/pubs/rotating-skiplist-preprint-2016.pdf), which claims to be the fastest to date for C/C++ and Java because the compared implementations have maintenance threads with increased overhead for memory management.
+
 
 ###### Caching and Search Fingers
 
