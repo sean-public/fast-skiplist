@@ -142,6 +142,11 @@ func TestChangeLevel(t *testing.T) {
 	}
 }
 
+func TestMaxLevel(t *testing.T) {
+	list := NewWithMaxLevel(DefaultMaxLevel + 1)
+	list.Set(0, struct{}{})
+}
+
 func TestChangeProbability(t *testing.T) {
 	list := New()
 
