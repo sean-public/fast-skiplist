@@ -157,12 +157,12 @@ func NewWithMaxLevel(maxLevel int) *SkipList {
 	}
 
 	return &SkipList{
-		elementNode:    elementNode{next: make([]*Element, DefaultMaxLevel)},
-		prevNodesCache: make([]*elementNode, DefaultMaxLevel),
+		elementNode:    elementNode{next: make([]*Element, maxLevel)},
+		prevNodesCache: make([]*elementNode, maxLevel),
 		maxLevel:       maxLevel,
 		randSource:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		probability:    DefaultProbability,
-		probTable:      probabilityTable(DefaultProbability, DefaultMaxLevel),
+		probTable:      probabilityTable(DefaultProbability, maxLevel),
 	}
 }
 
