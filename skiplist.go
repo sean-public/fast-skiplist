@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	// Suitable for math.Floor(math.Pow(math.E, 18)) == 65659969 elements in list
 	DefaultMaxLevel    int     = 18
 	DefaultProbability float64 = 1 / math.E
 )
@@ -150,6 +151,8 @@ func probabilityTable(probability float64, MaxLevel int) (table []float64) {
 }
 
 // NewWithMaxLevel creates a new skip list with MaxLevel set to the provided number.
+// maxLevel has to be int(math.Ceil(math.Log(N))) for DefaultProbability (where N is an upper bound on the
+// number of elements in a skip list). See http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.17.524
 // Returns a pointer to the new list.
 func NewWithMaxLevel(maxLevel int) *SkipList {
 	if maxLevel < 1 || maxLevel > 64 {
