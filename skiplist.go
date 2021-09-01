@@ -28,7 +28,7 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 	var element *Element
 	prevs := list.getPrevElementNodes(key)
 
-	if element = prevs[0].next[0]; element != nil && element.key <= key {
+	if element = prevs[0].next[0]; element != nil && element.key == key {
 		element.value = value
 		return element
 	}
