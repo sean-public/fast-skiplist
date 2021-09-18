@@ -53,8 +53,8 @@ func (list *SkipList) Set(key float64, value interface{}) *Element {
 // Get finds an element by key. It returns element pointer if found, nil if not found.
 // Locking is optimistic and happens only after searching with a fast check for deletion after locking.
 func (list *SkipList) Get(key float64) *Element {
-	list.mutex.Lock()
-	defer list.mutex.Unlock()
+	list.mutex.RLock()
+	defer list.mutex.RUnlock()
 
 	var prev *elementNode = &list.elementNode
 	var next *Element
