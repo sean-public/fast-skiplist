@@ -3,6 +3,7 @@ package skiplist
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"unsafe"
 )
@@ -229,4 +230,21 @@ func BenchmarkDecGet(b *testing.B) {
 	}
 
 	b.SetBytes(int64(b.N))
+}
+
+func BenchmarkIncGetParallel(b *testing.B) {
+	b.ReportAllocs()
+	var t int64
+	b.RunParallel(func(pb *testing.PB) {
+		var i int64
+		for i = 0; pb.Next(); i++ {
+			res := benchList.Get(float64(i % 1e7))
+			if res == nil {
+				b.Fatal("failed to Get an element that should exist")
+			}
+		}
+		atomic.AddInt64(&t, i)
+	})
+
+	b.SetBytes(t)
 }
